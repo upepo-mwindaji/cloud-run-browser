@@ -1,0 +1,48 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/ingress-status: all
+    run.googleapis.com/urls: '["<end point>"]'
+  labels:
+    cloud.googleapis.com/location: <region>
+    run.googleapis.com/satisfiesPzs: 'true'
+  name: <function name>
+  namespace: '<namespace>'
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '100'
+        run.googleapis.com/client-name: cloud-console
+        run.googleapis.com/startup-cpu-boost: 'true'
+      labels:
+        client.knative.dev/nonce: 7f52ecd7-1844-453f-be5a-af5ec5963e64
+        run.googleapis.com/startupProbeType: Default
+    spec:
+      containerConcurrency: 80
+      containers:
+      - env:
+        - name: SECRET
+          value: <some secret>
+        image: gcr.io/<project-id>/<image id>
+        name: <image name>
+        ports:
+        - containerPort: 8080
+          name: http1
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+        startupProbe:
+          failureThreshold: 1
+          periodSeconds: 240
+          tcpSocket:
+            port: 8080
+          timeoutSeconds: 240
+      serviceAccountName: <service account name>
+      timeoutSeconds: 120
+  traffic:
+  - latestRevision: true
+    percent: 100
